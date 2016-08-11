@@ -1,0 +1,26 @@
+{
+    "name": "skeeks/cms-export",
+    "description": "Export data from the site on SkeekS CMS",
+    "keywords": ["module", "cms", "skeeks", "sx", "app", "yii2", "export"],
+    "homepage": "http://www.skeeks.com/",
+    "type": "yii2-extension",
+    "license": "GPL-3.0+",
+    "support": {
+        "issues": "http://cms.skeeks.com",
+        "source": "https://github.com/skeeks-cms/cms-export"
+    },
+    "authors": [
+        {
+            "name": "Semenov Alexander",
+            "email": "semenov@skeeks.com"
+        }
+    ],
+    "require": {
+        "skeeks/cms": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "skeeks\\cms\\export\\": ""
+        }
+    }
+}
