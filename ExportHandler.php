@@ -7,6 +7,7 @@
  */
 namespace skeeks\cms\export;
 use skeeks\cms\base\ConfigFormInterface;
+use skeeks\cms\export\models\ExportTask;
 use yii\base\Component;
 use yii\base\Model;
 use yii\widgets\ActiveForm;
@@ -31,6 +32,11 @@ abstract class ExportHandler extends Model implements ExportHandlerInterface, Co
      * @var string Export type csv, xml or null
      */
     public $type;
+
+    /**
+     * @var ExportTask
+     */
+    public $taskModel;
 
     /**
      * @param ActiveForm $form
