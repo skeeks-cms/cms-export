@@ -7,7 +7,7 @@
  */
 return
 [
-    'exportExport' =>
+    'exportImport' =>
     [
         "label"     => \Yii::t('skeeks/export', "Export / Import"),
         "img"       => ['\skeeks\cms\export\assets\ExportAsset', 'icons/export.png'],
