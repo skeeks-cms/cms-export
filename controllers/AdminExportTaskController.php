@@ -156,7 +156,7 @@ class AdminExportTaskController extends AdminModelEditorController
     }
 
 
-    public function actionLoadTask()
+    public function actionExport()
     {
         $rr = new RequestResponse();
 
@@ -189,81 +189,39 @@ class AdminExportTaskController extends AdminModelEditorController
         {
             $rr->success = true;
 
-            $rr->data = [
-                'step'          => (int) $handler->step,
-                'total'         => (int) $handler->csvTotalRows,
-                'totalTask'     => (int) $handler->totalTask,
-                'totalSteps'    => (int) $handler->totalSteps,
-                'start'         => (int) $handler->startRow,
-                'end'           => (int) $handler->endRow,
-            ];
-
-        } else
-        {
-            $rr->success = false;
-            $rr->message = 'Проверьте правильность указанных данных';
-        }
-
-        return $rr;
-    }
-
-    public function actionExportStep()
-    {
-        $rr = new RequestResponse();
-
-        $start  = \Yii::$app->request->post('start');
-        $end    = \Yii::$app->request->post('end');
-
-        $taskData = [];
-        parse_str(\Yii::$app->request->post('task'), $taskData);
-
-        $model = new ExportTaskCsv();
-        $model->loadDefaultValues();
-        $model->load($taskData);
-
-        $handler = $model->handler;
-        $handler->load($taskData);
-
-        $model->validate();
-        $handler->validate();
-
-        if (!$model->errors && !$handler->errors)
-        {
-            $rows = $model->handler->getCsvColumnsData($start, $end);
-            $results = [];
-            $totalSuccess = 0;
-            $totalErrors = 0;
-
-            foreach ($rows as $number => $data)
+            try
             {
-                $result = $model->handler->export($number, $data);
-                if ($result->success)
-                {
-                    $totalSuccess++;
-                } else
-                {
-                    $totalErrors++;
-                }
-                $results[$number] = $result;
+                $result = $handler->export();
+
+                $log = (string) $result;
+
+                $rr->success = true;
+                $rr->data = [
+                    'html'           => <<<HTML
+                    <br />
+                    <br />
+<div class="alert-success alert fade in">
+Файл успешно сформирован: <a href="{$handler->file_path}" data-pjax="0" target="_blank">{$handler->file_path}</a><br />
+</div>
+<textarea class="form-control" rows="20" readonly>{$log}</textarea>
+HTML
+,
+                ];
+            } catch (\Exception $e)
+            {
+                $rr->success = false;
+                $rr->message = $e->getMessage();
             }
 
-            $rr->success    = true;
 
-            $rr->data       = [
-                'rows'          => $results,
-                'totalSuccess'  => $totalSuccess,
-                'totalErrors'   => $totalErrors,
-            ];
-
-            $rr->message    = 'Задание выполнено';
         } else
         {
             $rr->success = false;
             $rr->message = 'Проверьте правильность указанных данных';
         }
 
-
         return $rr;
     }
+
 
 }

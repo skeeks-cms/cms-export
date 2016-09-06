@@ -47,11 +47,8 @@ $this->registerJs(<<<JS
             this.jBtnStart = $(".sx-start-btn", this.jWidget);
             this.jResultWrapper = $(".sx-result-wrapper", this.jWidget);
 
-            console.log('1');
             this.jBtnStart.bind('click', function()
             {
-                        console.log('2');
-
                 self.run();
                 return false;
             });
@@ -76,7 +73,7 @@ $this->registerJs(<<<JS
 
             AjaxHandler.bind('success', function(e, response)
             {
-                console.log(response.data);
+                self.jResultWrapper.empty().append(response.data.html);
             });
 
             AjaxHandler.bind('error', function(e, response)
