@@ -18,10 +18,11 @@ class ExportResult extends Component
 
     /**
      * @param $message
+     * @param $int @see
      *
      * @return $this
      */
-    public function stdout($message)
+    public function stdout($message, $int = 0)
     {
         $this->_stdouts[] = $message;
         return $this;

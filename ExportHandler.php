@@ -139,4 +139,15 @@ abstract class ExportHandler extends Model implements ExportHandlerInterface, Co
 
         return $this->_result;
     }
+
+    /**
+     * @param ExportResult $exportResult
+     *
+     * @return $this
+     */
+    public function setResult(ExportResult $exportResult)
+    {
+        $this->_result = $exportResult;
+        return $this;
+    }
 }
