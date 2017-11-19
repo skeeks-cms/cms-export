@@ -42,14 +42,12 @@ class m160902_100558_create_table__export_task extends Migration
 
         ], $tableOptions);
 
-        $this->createIndex('updated_by', '{{%export_task}}', 'updated_by');
-        $this->createIndex('created_by', '{{%export_task}}', 'created_by');
-        $this->createIndex('created_at', '{{%export_task}}', 'created_at');
-        $this->createIndex('updated_at', '{{%export_task}}', 'updated_at');
+        $this->createIndex('export_task__updated_by', '{{%export_task}}', 'updated_by');
+        $this->createIndex('export_task__created_by', '{{%export_task}}', 'created_by');
+        $this->createIndex('export_task__created_at', '{{%export_task}}', 'created_at');
+        $this->createIndex('export_task__updated_at', '{{%export_task}}', 'updated_at');
 
         $this->createIndex('name', '{{%export_task}}', 'name');
-
-        $this->execute("ALTER TABLE {{%export_task}} COMMENT = 'Tasks for export';");
 
         $this->addForeignKey(
             'export_task__created_by', "{{%export_task}}",
