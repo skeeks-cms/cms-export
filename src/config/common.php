@@ -1,6 +1,7 @@
 <?php
 return [
 
+    
     'components' =>
     [
         'cmsExport' => [

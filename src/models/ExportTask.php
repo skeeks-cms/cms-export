@@ -10,6 +10,7 @@ namespace skeeks\cms\export\models;
 use skeeks\cms\export\ExportHandler;
 use skeeks\cms\export\ExportHandlerInterface;
 use skeeks\cms\models\behaviors\Serialize;
+use skeeks\cms\models\CmsSite;
 use Yii;
 use yii\helpers\ArrayHelper;
 
@@ -25,7 +26,9 @@ use yii\helpers\ArrayHelper;
  * @property string $description
  * @property string $component
  * @property string $component_settings
- *
+ * @property integer       $cms_site_id
+ * 
+ * @property CmsSite       $cmsSite
  * @property ExportHandler $handler
  */
 class ExportTask extends \skeeks\cms\models\Core
@@ -60,6 +63,18 @@ class ExportTask extends \skeeks\cms\models\Core
             [['component_settings'], 'safe'],
             [['description'], 'string'],
             [['name', 'component'], 'string', 'max' => 255],
+            
+            [['cms_site_id',], 'integer'],
+
+            [
+                'cms_site_id',
+                'default',
+                'value' => function () {
+                    if (\Yii::$app->skeeks->site) {
+                        return \Yii::$app->skeeks->site->id;
+                    }
+                },
+            ],
         ]);
     }
 
@@ -103,5 +118,15 @@ class ExportTask extends \skeeks\cms\models\Core
         }
 
         return null;
+    }
+    
+    
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCmsSite()
+    {
+        $class = \Yii::$app->skeeks->siteClass;
+        return $this->hasOne($class, ['id' => 'cms_site_id']);
     }
 }

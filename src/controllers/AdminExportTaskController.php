@@ -12,7 +12,9 @@ use skeeks\cms\backend\controllers\BackendModelStandartController;
 use skeeks\cms\export\models\ExportTask;
 use skeeks\cms\helpers\RequestResponse;
 use skeeks\cms\modules\admin\actions\modelEditor\AdminModelEditorAction;
+use yii\base\Event;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
 
 /**
  * Class AdminExportTaskController
@@ -27,24 +29,73 @@ class AdminExportTaskController extends BackendModelStandartController
         $this->name = \Yii::t('skeeks/export', 'Tasks on exports');
         $this->modelShowAttribute = "id";
         $this->modelClassName = ExportTask::className();
-        
+
         parent::init();
     }
 
     public function actions()
     {
-        return ArrayHelper::merge(parent::actions(),
-            [
-                'create' =>
-                    [
-                        'callback' => [$this, 'create'],
-                    ],
+        return ArrayHelper::merge(parent::actions(), [
+            
+            'index' => [
+                'filters' => false,
+                'backendShowings' => false,
+                'grid' => [
+                    
+                    'on init' => function (Event $e) {
+                        /**
+                         * @var $dataProvider ActiveDataProvider
+                         * @var $query ActiveQuery
+                         */
+                        $query = $e->sender->dataProvider->query;
 
-                'update' =>
-                    [
-                        'callback' => [$this, 'update'],
+                        $query->andWhere(['cms_site_id' => \Yii::$app->skeeks->site->id]);
+                    },
+                    
+                    'visibleColumns' => [
+                        'checkbox',
+                        'actions',
+
+                        'name',
+                        'component',
                     ],
-            ]);
+                    'columns' => [
+                        'name' => [
+                            'format' => 'raw',
+                            'value' => function(ExportTask $task) {
+                                $result = Html::a($task->asText, '#', [
+                                    'class' => 'sx-trigger-action'
+                                ]);
+                                if ($task->description) {
+                                    $result .= "<br />" . Html::tag('small', $task->description);
+                                }
+                                return $result;
+                            }
+                        ],
+                        'component' => [
+                            'format' => 'raw',
+                            'value' => function(ExportTask $task) {
+                                $result = "";
+                                if ($task->handler) {
+                                    $result = $task->handler->name . "<br />";
+                                }
+                                $result .= $task->component;
+
+                                return $result;
+                            }
+                        ]
+                    ]
+                ]
+            ],
+            
+            'create' => [
+                'callback' => [$this, 'create'],
+            ],
+
+            'update' => [
+                'callback' => [$this, 'update'],
+            ],
+        ]);
     }
 
 
@@ -76,7 +127,7 @@ class AdminExportTaskController extends BackendModelStandartController
                     \Yii::$app->getSession()->setFlash('success', \Yii::t('app', 'Saved'));
 
                     return $this->redirect(
-                        $this->indexUrl
+                        $this->url
                     );
 
                 } else {
