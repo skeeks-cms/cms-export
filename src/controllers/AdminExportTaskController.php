@@ -30,6 +30,9 @@ class AdminExportTaskController extends BackendModelStandartController
         $this->modelShowAttribute = "id";
         $this->modelClassName = ExportTask::className();
 
+        $this->generateAccessActions = false;
+
+
         parent::init();
     }
 

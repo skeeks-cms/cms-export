@@ -21,15 +21,6 @@ return
                 "label"     => \Yii::t('skeeks/export', "Export"),
                 "img"       => ['\skeeks\cms\export\assets\ExportAsset', 'icons/export.png'],
                 "url"       => ["cmsExport/admin-export-task"],
-
-                'items' =>
-                [
-                    [
-                        "label"     => \Yii::t('skeeks/export', "All kinds of exports"),
-                        "img"       => ['\skeeks\cms\export\assets\ExportAsset', 'icons/export.png'],
-                        "url"       => ["cmsExport/admin-export-task"],
-                    ]
-                ],
             ],
         ]
     ]

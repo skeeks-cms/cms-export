@@ -19,7 +19,28 @@ return [
                     ],
                 ]
             ]
-        ]
+        ],
+        
+        'authManager' => [
+            'config' => [
+                'roles'       => [
+                    [
+                        'name'  => \skeeks\cms\rbac\CmsManager::ROLE_ADMIN,
+                        'child' => [
+                            'permissions' => [
+                                "cmsExport/admin-export-task",
+                            ],
+                        ],
+                    ],
+                ],
+                'permissions' => [
+                    [
+                        'name'        => 'cmsExport/admin-export-task',
+                        'description' => "Импорт",
+                    ],
+                ],
+            ],
+        ],
     ],
 
     'modules' =>
