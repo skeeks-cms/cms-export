@@ -177,9 +177,9 @@ class AdminExportTaskController extends BackendModelStandartController
                         if (\Yii::$app->request->post('submit-btn') == 'apply') {
 
                         } else {
-                            return $this->redirect(
+                            /*return $this->redirect(
                                 $this->indexUrl
-                            );
+                            );*/
                         }
 
                         $model->refresh();
