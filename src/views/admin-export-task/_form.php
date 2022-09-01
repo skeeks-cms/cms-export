@@ -46,6 +46,9 @@ use skeeks\cms\modules\admin\widgets\form\ActiveFormUseTab as ActiveForm;
             }, 200);
         }
     });
+    
+    
+    
 
     sx.Export = new sx.classes.Export();
 })(sx, sx.$, sx._);
@@ -54,15 +57,21 @@ use skeeks\cms\modules\admin\widgets\form\ActiveFormUseTab as ActiveForm;
 JS
 ); ?>
 
+<?php if(!$model->isNewRecord) : ?>
+    <div style="display: none;">
+<?php endif; ?>
     <?= \skeeks\cms\modules\admin\widgets\BlockTitleWidget::widget(['content' => 'Базовые настройки']); ?>
 
     <?= $form->field($model, 'component')->listBox(array_merge(['' => ' - '], \yii\helpers\ArrayHelper::map(
-        \Yii::$app->cmsExport->handlers, 'id', 'name'
-    )), [
-    'size' => 1,
-    'data-form-reload' => 'true'
-]); ?>
-
+            \Yii::$app->cmsExport->handlers, 'id', 'name'
+        )), [
+        'size' => 1,
+        'data-form-reload' => 'true'
+    ]); ?>
+<?php if(!$model->isNewRecord) : ?>
+        </div>
+<?php endif; ?>
+    
 
 <? if ($handler) : ?>
 
