@@ -51,7 +51,7 @@ abstract class ExportHandler extends Model implements ExportHandlerInterface, Co
      */
     public $file_path = '/export/file';
 
-    public $alias = '@frontend/web';
+    public $alias = '@webroot';
 
     public function rules()
     {
