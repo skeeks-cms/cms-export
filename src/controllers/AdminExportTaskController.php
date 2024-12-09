@@ -12,6 +12,7 @@ use skeeks\cms\backend\controllers\BackendModelStandartController;
 use skeeks\cms\export\models\ExportTask;
 use skeeks\cms\helpers\RequestResponse;
 use skeeks\cms\modules\admin\actions\modelEditor\AdminModelEditorAction;
+use skeeks\cms\rbac\CmsManager;
 use yii\base\Event;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
@@ -31,6 +32,7 @@ class AdminExportTaskController extends BackendModelStandartController
         $this->modelClassName = ExportTask::className();
 
         $this->generateAccessActions = false;
+        $this->permissionName = CmsManager::PERMISSION_ROLE_ADMIN_ACCESS;
 
 
         parent::init();
@@ -39,12 +41,12 @@ class AdminExportTaskController extends BackendModelStandartController
     public function actions()
     {
         return ArrayHelper::merge(parent::actions(), [
-            
+
             'index' => [
-                'filters' => false,
+                'filters'         => false,
                 'backendShowings' => false,
-                'grid' => [
-                    
+                'grid'            => [
+
                     'on init' => function (Event $e) {
                         /**
                          * @var $dataProvider ActiveDataProvider
@@ -54,7 +56,7 @@ class AdminExportTaskController extends BackendModelStandartController
 
                         $query->andWhere(['cms_site_id' => \Yii::$app->skeeks->site->id]);
                     },
-                    
+
                     'visibleColumns' => [
                         'checkbox',
                         'actions',
@@ -62,35 +64,35 @@ class AdminExportTaskController extends BackendModelStandartController
                         'name',
                         'component',
                     ],
-                    'columns' => [
-                        'name' => [
+                    'columns'        => [
+                        'name'      => [
                             'format' => 'raw',
-                            'value' => function(ExportTask $task) {
+                            'value'  => function (ExportTask $task) {
                                 $result = Html::a($task->asText, '#', [
-                                    'class' => 'sx-trigger-action'
+                                    'class' => 'sx-trigger-action',
                                 ]);
                                 if ($task->description) {
-                                    $result .= "<br />" . Html::tag('small', $task->description);
+                                    $result .= "<br />".Html::tag('small', $task->description);
                                 }
                                 return $result;
-                            }
+                            },
                         ],
                         'component' => [
                             'format' => 'raw',
-                            'value' => function(ExportTask $task) {
+                            'value'  => function (ExportTask $task) {
                                 $result = "";
                                 if ($task->handler) {
-                                    $result = $task->handler->name . "<br />";
+                                    $result = $task->handler->name."<br />";
                                 }
                                 $result .= $task->component;
 
                                 return $result;
-                            }
-                        ]
-                    ]
-                ]
+                            },
+                        ],
+                    ],
+                ],
             ],
-            
+
             'create' => [
                 'callback' => [$this, 'create'],
             ],
