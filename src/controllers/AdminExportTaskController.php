@@ -8,6 +8,7 @@
 
 namespace skeeks\cms\export\controllers;
 
+use skeeks\cms\agent\models\CmsAgentModel;
 use skeeks\cms\backend\controllers\BackendModelStandartController;
 use skeeks\cms\export\models\ExportTask;
 use skeeks\cms\helpers\RequestResponse;
@@ -43,6 +44,24 @@ class AdminExportTaskController extends BackendModelStandartController
         return ArrayHelper::merge(parent::actions(), [
 
             'index' => [
+                'on afterRender' => function (Event $e) {
+                    $site_id = \Yii::$app->skeeks->site->id;
+                    $e->content = \yii\bootstrap\Alert::widget([
+                        'closeButton' => false,
+                        'options'     => [
+                            'class' => 'alert-default',
+                        ],
+
+                        'body' => <<<HTML
+<p>Чтобы запустить задачу на импорт из консоли:</p>
+<p><b>CMS_SITE={$site_id} php yii cmsExport/execute/task id</b></p>
+<p>Чтобы добавить агент:</p>
+<p><b>cmsExport/execute/task id</b></p>
+HTML
+                        ,
+                    ]);
+                },
+
                 'filters'         => false,
                 'backendShowings' => false,
                 'grid'            => [
@@ -68,12 +87,37 @@ class AdminExportTaskController extends BackendModelStandartController
                         'name'      => [
                             'format' => 'raw',
                             'value'  => function (ExportTask $task) {
+
                                 $result = Html::a($task->asText, '#', [
                                     'class' => 'sx-trigger-action',
                                 ]);
+
                                 if ($task->description) {
                                     $result .= "<br />".Html::tag('small', $task->description);
                                 }
+
+                                /**
+                                 * @var $agent CmsAgentModel
+                                 */
+                                $agent = CmsAgentModel::find()->andWhere(['name' => "cmsExport/execute/task {$task->id}"])->one();
+                                if ($agent) {
+                                    if ($agent->is_active) {
+                                        $nexTime = \Yii::$app->formatter->asRelativeTime($agent->next_exec_at);
+                                        $result .= "<br />".Html::tag('small', "Автообновление включено ({$nexTime})", [
+                                                'style' => 'color: green;',
+                                            ]);
+                                    } else {
+                                        $nexTime = \Yii::$app->formatter->asRelativeTime($agent->next_exec_at);
+                                        $result .= "<br />".Html::tag('small', "Автообновление отключено ({$nexTime})", [
+                                                'style' => 'color: red;',
+                                            ]);
+                                    }
+                                } else {
+                                    $result .= "<br />".Html::tag('small', "Добавить агента", [
+                                        //'style' => 'color: red;',
+                                    ]);
+                                }
+
                                 return $result;
                             },
                         ],
