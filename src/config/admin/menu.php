@@ -10,7 +10,6 @@ return
     'exportImport' =>
     [
         "label"     => \Yii::t('skeeks/export', "Export / Import"),
-        "img"       => ['\skeeks\cms\export\assets\ExportAsset', 'icons/export.png'],
 
         'priority'  => 400,
 
@@ -19,7 +18,7 @@ return
             "export" =>
             [
                 "label"     => \Yii::t('skeeks/export', "Export"),
-                "img"       => ['\skeeks\cms\export\assets\ExportAsset', 'icons/export.png'],
+                "img"       => ['\skeeks\cms\assets\CmsAsset', 'images/icons/admin-menu/export-import.svg'],
                 "url"       => ["cmsExport/admin-export-task"],
             ],
         ]
