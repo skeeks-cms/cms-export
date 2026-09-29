@@ -28,11 +28,11 @@ class ExecuteController extends Controller
         /**
          * @var ExportTask $exportTask
          */
-        $exportTask = ExportTask::findOne(['id' => $id]);
+        $exportTask = ExportTask::findOne(['id' => $id, 'cms_site_id' => \Yii::$app->skeeks->site->id]);
         if (!$exportTask)
         {
             $this->stdout("Задача №{$id} не найдена.\n", Console::FG_RED);
-            return false;
+            return 1;
         }
 
         $this->stdout("Задача №{$id} — {$exportTask->name}.\n", Console::BOLD);
@@ -41,12 +41,12 @@ class ExecuteController extends Controller
         {
             $this->stdout("Не найден обработчик $exportTask->component\n", Console::FG_RED);
             print_r(array_keys(\Yii::$app->cmsExport->handlers));
-            return false;
+            return 1;
         }
 
-        $handler->setResult(new ExportResultConsole([
-            'controller' => $this
-        ]));
-        $exportTask->handler->export();
+        $run = $exportTask->enqueue();
+        if (!$run) { $this->stderr("Не удалось получить запуск.\n"); return 1; }
+        $this->stdout("Фоновое задание #{$run->id}: {$run->status}\n");
+        return 0;
     }
 }

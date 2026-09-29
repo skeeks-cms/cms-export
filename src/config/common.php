@@ -4,6 +4,23 @@ return [
     
     'components' =>
     [
+        'cmsAgent' => ['jobTargets' => ['export.execute' => \skeeks\cms\export\jobs\ExportScheduleTarget::class]],
+        'jobQueueFactory' => ['queues' => ['exports' => []]],
+        'jobRegistry' => ['types' => [
+            'export.execute' => [
+                'type' => 'export.execute',
+                'title' => 'Экспорт',
+                'handler' => \skeeks\cms\export\jobs\ExportJobHandler::class,
+                'queue' => 'exports',
+                'permission' => \skeeks\cms\rbac\CmsManager::PERMISSION_ROLE_ADMIN_ACCESS,
+                'overlapPolicy' => 'skip',
+                'resourceKey' => [\skeeks\cms\export\jobs\ExportJobHandler::class, 'resource'],
+                'dedupKey' => [\skeeks\cms\export\jobs\ExportJobHandler::class, 'key'],
+                'timeout' => 7200,
+                'leaseSeconds' => 180,
+                'maxAttempts' => 1,
+            ],
+        ]],
         'cmsExport' => [
             'class'     => 'skeeks\cms\export\ExportComponent',
         ],

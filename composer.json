@@ -16,7 +16,9 @@
         }
     ],
     "require": {
-        "skeeks/cms": "*"
+        "skeeks/cms": "*",
+        "skeeks/cms-job": "^1.0 || dev-master",
+        "skeeks/cms-agent": "^3.3 || dev-master"
     },
     "autoload": {
         "psr-4": {

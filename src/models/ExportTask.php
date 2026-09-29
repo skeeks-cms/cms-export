@@ -33,6 +33,33 @@ use yii\helpers\ArrayHelper;
  */
 class ExportTask extends \skeeks\cms\models\Core
 {
+    public function enqueue($triggerType = 'manual')
+    {
+        if ($this->isNewRecord || !$this->handler) {
+            throw new \RuntimeException('Сначала сохраните настройку экспорта.');
+        }
+        $handler = $this->handler;
+        if (!$handler->validate()) { throw new \InvalidArgumentException(implode('; ', $handler->getFirstErrors())); }
+        $run = \Yii::$app->jobs->push(\skeeks\cms\export\jobs\ExportJobHandler::TYPE,
+            ['export_task_id' => (int)$this->id], [
+                'siteId' => $this->cms_site_id,
+                'title' => 'Экспорт: '.$this->name,
+                'triggerType' => $triggerType,
+                'triggerRef' => 'export_task:'.$this->id,
+            ]);
+        return $run ?: $this->getLatestJob(true);
+    }
+
+    public function getLatestJob($activeOnly = false)
+    {
+        $key = 'export:'.(int)$this->cms_site_id.':'.(int)$this->id;
+        return \skeeks\cms\job\models\CmsJobRun::find()->andWhere([
+            $activeOnly ? 'dedup_active' : 'dedup_key' => $key,
+            'cms_site_id' => $this->cms_site_id,
+            'job_type' => \skeeks\cms\export\jobs\ExportJobHandler::TYPE,
+        ])->orderBy(['id' => SORT_DESC])->one();
+    }
+
     /**
      * @inheritdoc
      */
@@ -105,7 +132,7 @@ class ExportTask extends \skeeks\cms\models\Core
                 /**
                  * @var $component Component
                  */
-                $component = \Yii::$app->cmsExport->getHandler($this->component);
+                $component = clone \Yii::$app->cmsExport->getHandler($this->component);
                 $component->taskModel = $this;
                 $component->load($this->component_settings, "");
 

@@ -11,6 +11,10 @@ use yii\base\Component;
 
 class ExportResult extends Component
 {
+    public function checkpoint() {}
+    public function setTotal($total) {}
+    public function itemFinished($id, $error = null) {}
+
     public $success     = true;
     public $message     = '';
 

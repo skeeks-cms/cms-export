@@ -44,6 +44,7 @@ class AdminExportTaskController extends BackendModelStandartController
         return ArrayHelper::merge(parent::actions(), [
 
             'index' => [
+                'configKey' => $this->uniqueId.'/index/queue-v1',
                 'on afterRender' => function (Event $e) {
                     $site_id = \Yii::$app->skeeks->site->id;
                     $e->content = \yii\bootstrap\Alert::widget([
@@ -53,10 +54,10 @@ class AdminExportTaskController extends BackendModelStandartController
                         ],
 
                         'body' => <<<HTML
-<p>Чтобы запустить задачу на импорт из консоли:</p>
+<p>Запуск экспорта через очередь из консоли:</p>
 <p><b>CMS_SITE={$site_id} php yii cmsExport/execute/task id</b></p>
-<p>Чтобы добавить агент:</p>
-<p><b>cmsExport/execute/task id</b></p>
+<p>Расписание настраивается в строке экспорта или в разделе «Расписание» → «Экспорт».</p>
+<p>После запуска можно закрыть страницу: работу продолжит сервер.</p>
 HTML
                         ,
                     ]);
@@ -82,40 +83,33 @@ HTML
 
                         'name',
                         'component',
+                        'job',
+                        'schedule',
                     ],
                     'columns'        => [
-                        'name'      => [
-                            'format' => 'raw',
-                            'value'  => function (ExportTask $task) {
-
-                                $result = Html::a($task->asText, '#', [
-                                    'class' => 'sx-trigger-action',
+                        'job' => [
+                            'label' => 'Запуск', 'format' => 'raw',
+                            'value' => function (ExportTask $task) {
+                                return \skeeks\cms\job\widgets\JobButton::widget([
+                                    'startUrl' => ['start-job', 'id' => $task->id],
+                                    'statusUrl' => ['job-status', 'id' => $task->id],
                                 ]);
+                            },
+                        ],
+                        'schedule' => [
+                            'label' => 'Расписание', 'format' => 'raw',
+                            'value' => function (ExportTask $task) { return $this->renderSchedule($task); },
+                        ],
+                        'name'      => [
+                            'class' => \skeeks\cms\backend\grid\BackendEntityLinkColumn::class,
+                            'controllerId' => '/cmsExport/admin-export-task',
+                            'action' => 'update',
+                            'attribute' => 'name',
+                            'content' => function (ExportTask $task) {
+                                $result = Html::tag('span', Html::encode($task->asText), ['class' => 'sx-collection-cell__primary']);
 
                                 if ($task->description) {
-                                    $result .= "<br />".Html::tag('small', $task->description);
-                                }
-
-                                /**
-                                 * @var $agent CmsAgentModel
-                                 */
-                                $agent = CmsAgentModel::find()->andWhere(['name' => "cmsExport/execute/task {$task->id}"])->one();
-                                if ($agent) {
-                                    if ($agent->is_active) {
-                                        $nexTime = \Yii::$app->formatter->asRelativeTime($agent->next_exec_at);
-                                        $result .= "<br />".Html::tag('small', "Автообновление включено ({$nexTime})", [
-                                                'style' => 'color: green;',
-                                            ]);
-                                    } else {
-                                        $nexTime = \Yii::$app->formatter->asRelativeTime($agent->next_exec_at);
-                                        $result .= "<br />".Html::tag('small', "Автообновление отключено ({$nexTime})", [
-                                                'style' => 'color: red;',
-                                            ]);
-                                    }
-                                } else {
-                                    $result .= "<br />".Html::tag('small', "Добавить агента", [
-                                        //'style' => 'color: red;',
-                                    ]);
+                                    $result .= Html::tag('span', Html::encode($task->description), ['class' => 'sx-collection-cell__secondary']);
                                 }
 
                                 return $result;
@@ -129,6 +123,11 @@ HTML
                                     $result = $task->handler->name."<br />";
                                 }
                                 $result .= $task->component;
+
+                                $handler = $task->handler;
+                                if ($handler && strpos($handler->file_path, '/') === 0 && strpos($handler->file_path, '//') !== 0 && is_file($handler->rootFilePath)) {
+                                    $result .= '<br>'.Html::a('Открыть файл экспорта', $handler->file_path, ['target' => '_blank', 'rel' => 'noopener', 'data-pjax' => '0']);
+                                }
 
                                 return $result;
                             },
@@ -242,64 +241,63 @@ HTML
     }
 
 
+    /** Retired synchronous endpoint: never execute submitted handler settings. */
     public function actionExport()
     {
-        $rr = new RequestResponse();
-
-        $model = new ExportTask();
-        $model->loadDefaultValues();
-
-        if ($post = \Yii::$app->request->post()) {
-            $model->load($post);
-        }
-
-        $handler = $model->handler;
-        if ($handler) {
-            if ($post = \Yii::$app->request->post()) {
-                $handler->load($post);
-            }
-        } else {
-            $rr->success = false;
-            $rr->message = 'Компонент не настроен';
-            return $rr;
-        }
-
-        $model->validate();
-        $handler->validate();
-
-        if (!$model->errors && !$handler->errors) {
-            $rr->success = true;
-
-            try {
-                $result = $handler->export();
-
-                $log = (string)$result;
-
-                $rr->success = true;
-                $rr->data = [
-                    'html' => <<<HTML
-                    <br />
-                    <br />
-<div class="alert-success alert fade in">
-Файл успешно сформирован: <a href="{$handler->file_path}" data-pjax="0" target="_blank">{$handler->file_path}</a><br />
-</div>
-<textarea class="form-control" rows="20" readonly>{$log}</textarea>
-HTML
-                    ,
-                ];
-            } catch (\Exception $e) {
-                $rr->success = false;
-                $rr->message = $e->getMessage();
-            }
-
-
-        } else {
-            $rr->success = false;
-            $rr->message = 'Проверьте правильность указанных данных';
-        }
-
-        return $rr;
+        throw new \yii\web\GoneHttpException('Сохраните настройку и используйте запуск через очередь.');
     }
 
+    protected function resolveExport($id)
+    {
+        if (\Yii::$app->user->isGuest || !\Yii::$app->user->can($this->permissionName)) {
+            throw new \yii\web\ForbiddenHttpException();
+        }
+        $task = ExportTask::findOne(['id' => (int)$id, 'cms_site_id' => \Yii::$app->skeeks->site->id]);
+        if (!$task) { throw new \yii\web\NotFoundHttpException(); }
+        return $task;
+    }
 
+    public function actionStartJob($id)
+    {
+        if (!\Yii::$app->request->isPost) { throw new \yii\web\MethodNotAllowedHttpException(); }
+        $task = $this->resolveExport($id);
+        return $this->jobResponse($task->enqueue());
+    }
+
+    public function actionJobStatus($id)
+    {
+        $task = $this->resolveExport($id);
+        return $this->jobResponse($task->getLatestJob(true) ?: $task->getLatestJob());
+    }
+
+    protected function jobResponse($run)
+    {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        return ['success' => true, 'run' => $run ? [
+            'id' => (int)$run->id, 'status' => $run->status, 'label' => $run->statusText,
+            'finished' => $run->isFinished, 'percent' => $run->progressPercent,
+            'message' => $run->isFinished
+                ? ($run->error_message ?: (in_array($run->status, ['succeeded', 'succeeded_with_warnings'], true) ? 'Файл сформирован' : ''))
+                : $run->progress_message,
+            'url' => \yii\helpers\Url::to(['/cmsJob/admin-cms-job-run/view', 'pk' => $run->id]),
+            'windowUrl' => \skeeks\cms\backend\helpers\BackendUrlHelper::createByParams([
+                '/cmsJob/admin-cms-job-run/view', 'pk' => $run->id,
+            ])->enableEmptyLayout()->enableNoActions()->url,
+        ] : null];
+    }
+
+    public function renderSchedule(ExportTask $task)
+    {
+        $links = [];
+        $agents = CmsAgentModel::find()->andWhere(['cms_site_id' => $task->cms_site_id])
+            ->andWhere(['or', ['job_type' => 'export.execute'], ['name' => 'cmsExport/execute/task '.$task->id]])->all();
+        foreach ($agents as $agent) {
+            if ($agent->job_type === 'export.execute' && (int)($agent->jobPayload['export_task_id'] ?? 0) !== (int)$task->id) { continue; }
+            $links[] = Html::a(($agent->is_active ? 'Включено' : 'Отключено').' — '.\Yii::$app->formatter->asDuration($agent->agent_interval),
+                ['/cmsAgent/admin-cms-agent/update', 'pk' => $agent->id], ['data-pjax' => '0']);
+        }
+        $links[] = Html::a($links ? 'Добавить расписание' : 'Настроить расписание',
+            ['/cmsAgent/admin-cms-agent/create', 'job_type' => 'export.execute', 'jobTargetId' => $task->id], ['data-pjax' => '0']);
+        return implode('<br>', $links);
+    }
 }

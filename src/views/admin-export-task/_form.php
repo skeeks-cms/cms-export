@@ -75,7 +75,7 @@ JS
 
 <? if ($handler) : ?>
 
-    <?= \skeeks\cms\modules\admin\widgets\BlockTitleWidget::widget(['content' => 'Настройки импорта']); ?>
+    <?= \skeeks\cms\modules\admin\widgets\BlockTitleWidget::widget(['content' => 'Настройки экспорта']); ?>
         <?= $handler->renderConfigForm($form); ?>
     <?= \skeeks\cms\modules\admin\widgets\BlockTitleWidget::widget(['content' => 'Сохранение задания']); ?>
         <?= $form->field($model, 'name'); ?>
@@ -95,14 +95,5 @@ JS
 
 
 <?= $form->buttonsStandart($model, ['save', 'close']); ?>
-<? if ($handler) : ?>
-
-    <hr />
-    <?= $handler->renderWidget($form); ?>
-    <?/*= \skeeks\cms\export\widgets\ExportWidget::widget([
-        'activeForm' => $form
-    ]); */?>
-    <br /><br />
-<? endif; ?>
 
 <?php ActiveForm::end(); ?>

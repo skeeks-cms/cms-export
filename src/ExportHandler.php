@@ -110,7 +110,8 @@ abstract class ExportHandler extends Model implements ExportHandlerInterface, Co
     public function renderWidget(ActiveForm $form)
     {
         echo ExportWidget::widget([
-            'activeForm' => $form
+            'activeForm' => $form,
+            'modelTask' => $this->taskModel,
         ]);
     }
 
