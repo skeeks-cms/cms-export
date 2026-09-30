@@ -15,6 +15,11 @@ class ExportResult extends Component
     public function setTotal($total) {}
     public function itemFinished($id, $error = null) {}
 
+    public function itemSkipped($id, $reason)
+    {
+        $this->stdout("\t\t{$id} — Пропущен: {$reason}\n");
+    }
+
     public $success     = true;
     public $message     = '';
 

@@ -42,4 +42,12 @@ class ExportJobResult extends ExportResult
         $this->reporter->advance();
         $this->checkpoint();
     }
+
+    public function itemSkipped($id, $reason)
+    {
+        $this->reporter->countSkipped();
+        $this->reporter->warning('Товар '.$id.' пропущен: '.$reason, ['product_id' => $id]);
+        $this->reporter->advance();
+        $this->checkpoint();
+    }
 }
